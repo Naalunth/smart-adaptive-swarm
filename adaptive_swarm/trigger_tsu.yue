@@ -79,8 +79,6 @@
         
         .lastFrameState = if highlightingFocus then .STATE_HIGHLIGHT_FOCUS else .STATE_HIGHLIGHT_ALLY
 
-        print "new state: #{.lastFrameState}"
-
         allStates[swarmUnit] = 
             show: true
             changed: true
