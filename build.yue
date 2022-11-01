@@ -1,0 +1,18 @@
+#!/usr/local/bin/yue -e
+
+strip_prefix = (code, prefix)->
+    if (code\sub 0, #prefix) == prefix then code\sub #prefix+1 else code
+
+settings =
+    implicit_return_root: true
+    reserve_line_number: false
+    space_over_tab: false
+    target: "5.1"
+
+local code
+unless code, err = yue.to_lua (yue.read_file arg[1]), settings
+    error "\n#{arg[1]}:#{err}"
+
+with io.open arg[2], "w"
+    \write (strip_prefix code, "return ")
+    \close!

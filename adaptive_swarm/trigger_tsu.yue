@@ -1,0 +1,92 @@
+(allStates, ...) -> with aura_env
+    -- return early to avoid processing too much
+    if GetTime! <= .nextUpdate then return false
+
+    getExpirationTime = (id) ->
+        start, duration = GetSpellCooldown id
+        start + duration
+    swarmExpirationTime = getExpirationTime .SPELL_SWARM
+    gcdExpirationTime = getExpirationTime .SPELL_GCD
+
+    -- remove any previous states first
+    for _, state in pairs(allStates) do with state
+        .show = false
+        .changed = true
+
+    -- highlight nothing if swarm isn't ready to be used
+    if swarmExpirationTime != gcdExpirationTime
+        .lastFrameState = .STATE_INACTIVE
+        return true
+
+    .nextUpdate = GetTime! + .config.updateInterval
+
+    swarmUnit = nil
+
+    -- if there is a focus, check if we have to keep up swarm on it first
+    if .config.focus and UnitExists(.focusTarget) and UnitCanAttack("player", .focusTarget)
+        hasSwarm = false
+        do
+            (aura) <- AuraUtil.ForEachAura .focusTarget, "PLAYER", nil, _, true
+            if aura.spellId != .SPELL_SWARM then return false
+            hasSwarm = true
+
+            distance, _ = WeakAuras.GetRange .focusTarget
+            travelTime = .travelTime distance
+            durationLeft = aura.expirationTime - GetTime!
+
+            if travelTime + .config.delay > durationLeft \
+                    or durationLeft < 4 + travelTime and aura.count <= 2 \
+                    or durationLeft < 6
+                swarmUnit = .focusTarget
+            
+            true
+        
+        if not hasSwarm and .lowestDuration! > 6 and GetTime! - .lastExp > 2
+            swarmUnit = .focusTarget
+    
+    -- if the focus doesn't require being swarmed, check allies
+    unless swarmUnit?
+        bestAura = nil
+        for swarm in *.swarms
+            _, distance = WeakAuras.GetRange aura.unit
+            unless distance? then continue
+            travelTime = .travelTime distance
+            durationLeft = aura.expirationTime - GetTime!
+
+            -- skip if the buff can't be reapplied in time
+            if travelTime + .config.delay > durationLeft then continue
+
+            -- otherwise search for the best target
+            auraPriority = .priority aura.count
+            bestPriority = .priority bestAura.count
+            if auraPriority? and (not bestAura? \
+                or auraPriority > bestPriority \
+                or auraPriority == bestPriority and aura.expirationTime > bestAura.expirationTime \
+            )
+                bestAura = aura
+
+        swarmUnit = bestAura?.unit ?? .lowestHealth!
+    
+    if swarmUnit?
+        sound = 0
+        highlightingFocus = swarmUnit == .focusTarget
+
+        -- play the target sound
+        sound = if .config.sound != .CONFIG_SOUND_NEVER and highlightingFocus and .lastFrameState != .STATE_HIGHLIGHT_FOCUS then .SOUND_FOCUS
+        -- or cooldown sound
+        elseif .config.sound == .CONFIG_SOUND_ALL and .lastFrameState == .STATE_INACTIVE then .SOUND_COOLDOWN
+        else .SOUND_NONE
+        
+        .lastFrameState = if highlightingFocus then .STATE_HIGHLIGHT_FOCUS else .STATE_HIGHLIGHT_ALLY
+
+        print "new state: #{.lastFrameState}"
+
+        allStates[swarmUnit] = 
+            show: true
+            changed: true
+            playSound: sound
+            unit: swarmUnit
+    else
+        .lastFrameState = .STATE_INACTIVE
+
+    return true

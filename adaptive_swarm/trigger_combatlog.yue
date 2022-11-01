@@ -1,0 +1,27 @@
+macro contains = (element, ...) ->
+    table.concat ["#{element} == #{x}" for x in *{...}], " or "
+
+(event, _, subEvent, _, _, sourceName, _, _, _, _, _, _, spellID) -> with aura_env 
+    unless spellID == .AURA_SWARM and $contains(subEvent, "SPELL_AURA_APPLIED", "SPELL_AURA_REMOVED", "SPELL_AURA_APPLIED_DOSE")\
+            or spellID == .AURA_FLOURISH and subEvent == "SPELL_AURA_APPLIED"
+        return
+
+    -- update the state of the swarms
+    .prevSwarms, .swarms = .swarms, {}
+    for unit in WA_IterateGroupMembers!
+        (aura) <- AuraUtil.ForEachAura unit, "PLAYER", nil, _, true
+        isSwarm = aura.spellId == .AURA_SWARM
+        .swarms[] = :unit, count: aura.count, expirationTime: aura.expirationTime if isSwarm
+        isSwarm
+
+    -- find out if a swarm expired on someone since last time
+    if #.swarms < #.prevSwarms
+        for swarm in *.swarms
+            found = false
+            for prevSwarm in *.prevSwarms
+                if swarm.unit == prevSwarm.unit
+                    found = true
+                    break
+            unless found
+                if swarm.count > 1 then .lastExp = GetTime!
+                break
