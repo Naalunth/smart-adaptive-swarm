@@ -1,3 +1,6 @@
+-- Event Type: Status
+-- Check On... Events: CLEU:SPELL_AURA_APPLIED:SPELL_AURA_REMOVED:SPELL_AURA_APPLIED_DOSE
+
 macro contains = (element, ...) ->
     table.concat ["#{element} == #{x}" for x in *{...}], " or "
 

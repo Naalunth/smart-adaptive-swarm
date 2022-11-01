@@ -1,3 +1,6 @@
+-- Event Type: TSU
+-- Check On... Every Frame
+
 (allStates, ...) -> with aura_env
     -- return early to avoid processing too much
     if GetTime! <= .nextUpdate then return false
