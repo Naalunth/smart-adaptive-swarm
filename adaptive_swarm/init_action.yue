@@ -46,6 +46,7 @@ with aura_env
                 lowest = min(swarm.expirationTime - GetTime!, lowest)
         lowest
     
+    -- maps from stack count to importance
     .priority = (count) -> 
         ({
             [2]: 2

@@ -4,6 +4,7 @@ strip_prefix = (code, prefix)->
     if (code\sub 0, #prefix) == prefix then code\sub #prefix+1 else code
 
 settings =
+    -- without this implicit return a top level anonymous function doesn't compile
     implicit_return_root: true
     reserve_line_number: false
     space_over_tab: false
@@ -14,5 +15,6 @@ unless code, err = yue.to_lua (yue.read_file arg[1]), settings
     error "\n#{arg[1]}:#{err}"
 
 with io.open arg[2], "w"
+    -- we remove the initial return to make WoW happy
     \write (strip_prefix code, "return ")
     \close!
