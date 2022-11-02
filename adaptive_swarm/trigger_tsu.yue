@@ -17,7 +17,6 @@
         previousState = state
         break
     
-    print "time: #{GetTime!}"
     changeMade = false
 
     -- highlight nothing if swarm isn't ready to be used
@@ -27,13 +26,11 @@
         swarmUnit = if .shouldCastOnFocus! then .focusTarget else .optimalAlly! ?? .lowestHealth!
         
         if swarmUnit?
-            print "swarm unit: #{swarmUnit}"
             if swarmUnit == previousState?.unit
                 previousState.changed = false
                 return false
 
-            print "adding new state (#{swarmUnit})"
-            -- play the target sound
+            -- play the focus sound
             sound = if .config.sound != .CONFIG_SOUND_NEVER and swarmUnit == .focusTarget then .SOUND_FOCUS
             -- or cooldown sound
             elseif .config.sound == .CONFIG_SOUND_ALL and not previousState? then .SOUND_COOLDOWN
@@ -50,17 +47,8 @@
         .nextUpdate = swarmExpirationTime
     
     if previousState? then
-        print "removing previous state (#{previousState.unit})"
         previousState.show = false
         previousState.changed = true
         changeMade = true
-
-    dump = (o) ->
-        if type(o) == "table"
-            local entries = for k, v in pairs o do "[#{k}] = #{dump(v)}"
-            "{#{table.concat entries, ', '}}"
-        else tostring o
-    
-    print "states: #{dump(allStates)}"
 
     return changeMade

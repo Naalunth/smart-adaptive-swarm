@@ -1,16 +1,19 @@
 with aura_env
-    .AURA_SWARM = 391891
+    .AURA_SWARM_HEAL = 391891
+    .AURA_SWARM_DAMAGE = 391889
     .AURA_FLOURISH = 197721
     .SPELL_SWARM = 391888
     .SPELL_GCD = 61304
+
     .CONFIG_SOUND_NEVER = 1
     .CONFIG_SOUND_FOCUS = 2
     .CONFIG_SOUND_ALL = 3
+    
     .SOUND_NONE = 0
     .SOUND_COOLDOWN = 1
     .SOUND_FOCUS = 2
+
     .swarms = {}
-    .prevSwarms = {}
     .nextUpdate = 0
     .lastExp = GetTime!
     .focusTarget = if .config.focusTarget then "target" else "focus"
@@ -81,8 +84,8 @@ with aura_env
         hasSwarm = false
         result = false
         do
-            (aura) <- AuraUtil.ForEachAura .focusTarget, "PLAYER", nil, _, true
-            if aura.spellId != .SPELL_SWARM then return false
+            (aura) <- AuraUtil.ForEachAura .focusTarget, "HARMFUL", nil, _, true
+            if aura.spellId != .AURA_SWARM_DAMAGE then return false
             hasSwarm = true
 
             distance, _ = WeakAuras.GetRange .focusTarget
@@ -90,7 +93,7 @@ with aura_env
             durationLeft = aura.expirationTime - GetTime!
 
             if travelTime + .config.delay > durationLeft \
-                    or durationLeft < 4 + travelTime and aura.count <= 2 \
+                    or durationLeft < 4 + travelTime and (aura.count ?? 1) <= 2 \
                     or durationLeft < 6
                 result = true
             
