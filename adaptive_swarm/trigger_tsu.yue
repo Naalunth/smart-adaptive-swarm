@@ -46,7 +46,7 @@
     else
         .nextUpdate = swarmExpirationTime
     
-    if previousState? then
+    if previousState?
         previousState.show = false
         previousState.changed = true
         changeMade = true
