@@ -64,27 +64,24 @@ aura_env.getLowestHealthAlly = function()
     local hasNoAllies = true
     for unit in WA_IterateGroupMembers() do
         if not UnitIsDead(unit) then
-            local health = UnitHealth(unit)
-            local max = UnitHealthMax(unit)
-            local ratio = 1
-            if max > 0 then
-                ratio = health / max
-            end
+            local currentHealth = UnitHealth(unit)
+            local maxHealth = UnitHealthMax(unit)
+            local currentHealthRatio = currentHealth / maxHealth
 
-            local swarm = aura_env.swarms[unit]
-
-            if hasNoAllies or not swarm and ratio < lowest.ratio then
-                lowest = { unit = unit, ratio = ratio }
+            if not aura_env.swarms[unit] then
+                if hasNoAllies or currentHealthRatio < lowest.ratio then
+                    lowest = { unit = unit, ratio = currentHealthRatio }
+                end
+                if hasNoAllies or maxHealth > maximum.max then
+                    maximum = { unit = unit, max = maxHealth }
+                end
+                hasNoAllies = false
             end
-            if hasNoAllies or not swarm and max > maximum.max then
-                maximum = { unit = unit, max = max }
-            end
-
-            hasNoAllies = false
         end
     end
 
-    return lowest and (lowest.ratio <= 0.95 and lowest.unit or maximum.unit)
+    if hasNoAllies then return nil end
+    return lowest.ratio <= 0.95 and lowest.unit or maximum.unit
 end
 
 ---Find the lowest duration running Adaptive Swarms
