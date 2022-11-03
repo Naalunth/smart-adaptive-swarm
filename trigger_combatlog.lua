@@ -37,5 +37,4 @@ function(event, _, subEvent, _, _, sourceName, _, _, _, _, _, _, spellID)
 			end
 		end
 	end
-	return aura_env
 end
