@@ -20,7 +20,7 @@ function(_, _, subEvent, _, _, _, _, _, _, _, _, _, spellID)
             end
             aura_env.swarms[unit] = {
                 unit = unit,
-                count = aura.count or 1,
+                count = aura.applications or 1,
                 expirationTime = aura.expirationTime
             }
             return true
